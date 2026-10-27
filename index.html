@@ -1,0 +1,804 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Тренажер для підготовки до НМТ: українська мова, історія України, математика, фізика. Авторські вправи з поясненнями та робота над помилками.">
+<meta name="theme-color" content="#EAF4EA">
+<title>НМТ: тренуємо пам’ять</title>
+<style>
+    :root {
+      --bg: #EAF4EA;
+      --text: #1D5F63;
+      --correct: #FFF2CC;
+      --wrong: #F4CCCC;
+      --card: #FFFFFF;
+      --border: #B9D4C7;
+      --muted: #52777A;
+      --selected: #DDEBE4;
+      --shadow: 0 8px 22px rgba(29, 95, 99, 0.10);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: var(--bg);
+      color: var(--text);
+      font-family: Arial, Helvetica, sans-serif;
+      line-height: 1.5;
+    }
+    button, select { font: inherit; }
+    button { color: var(--text); }
+    .app-shell {
+      width: min(1100px, calc(100% - 28px));
+      margin: 0 auto;
+      padding: 26px 0 48px;
+    }
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+    .brand {
+      margin: 0;
+      font-size: clamp(24px, 4vw, 38px);
+      line-height: 1.15;
+    }
+    .subtitle {
+      margin: 8px 0 0;
+      color: var(--muted);
+      font-size: 16px;
+    }
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 22px;
+      box-shadow: var(--shadow);
+    }
+    .hero {
+      padding: 28px;
+      margin-bottom: 20px;
+    }
+    .hero h2 { margin: 0 0 8px; font-size: 27px; }
+    .hero p { margin: 0; color: var(--muted); }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 16px;
+    }
+    .mode-card {
+      min-height: 156px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    .mode-card h3 { margin: 0 0 8px; font-size: 21px; }
+    .mode-card p { margin: 0 0 18px; color: var(--muted); }
+    .btn {
+      border: 1px solid var(--text);
+      background: var(--text);
+      color: white;
+      border-radius: 12px;
+      padding: 11px 16px;
+      cursor: pointer;
+      font-weight: 700;
+      transition: transform .12s ease, opacity .12s ease, background .12s ease;
+    }
+    .btn:hover:not(:disabled) { transform: translateY(-1px); }
+    .btn.secondary {
+      background: white;
+      color: var(--text);
+    }
+    .btn.ghost {
+      background: transparent;
+      color: var(--text);
+      border-color: var(--border);
+    }
+    .btn.danger {
+      background: #9B3B3B;
+      border-color: #9B3B3B;
+    }
+    .btn:disabled {
+      cursor: not-allowed;
+      opacity: .45;
+    }
+    .btn-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+    }
+    .topic-grid {
+      display: grid;
+      gap: 14px;
+      margin-top: 16px;
+    }
+    .topic-card {
+      text-align: left;
+      width: 100%;
+      background: white;
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 18px;
+      cursor: pointer;
+    }
+    .topic-card:hover { border-color: var(--text); }
+    .topic-card strong { display: block; font-size: 19px; margin-bottom: 5px; }
+    .topic-card span { color: var(--muted); }
+    .header-line {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 14px;
+      margin-bottom: 16px;
+    }
+    .header-line h2 { margin: 0; }
+    .meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin: 10px 0 18px;
+    }
+    .pill {
+      display: inline-block;
+      padding: 5px 10px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      font-size: 13px;
+      font-weight: 700;
+    }
+    .progress-track {
+      height: 9px;
+      background: #D8E8DA;
+      border-radius: 999px;
+      overflow: hidden;
+      margin: 12px 0 22px;
+    }
+    .progress-bar {
+      height: 100%;
+      background: var(--text);
+      transition: width .2s ease;
+    }
+    .question-text {
+      font-size: clamp(20px, 3vw, 27px);
+      line-height: 1.35;
+      margin: 0 0 18px;
+    }
+    .code-block {
+      background: #F4F7F4;
+      color: #24484B;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px;
+      margin: 12px 0 18px;
+      overflow-x: auto;
+      white-space: pre-wrap;
+      font-family: Consolas, "Courier New", monospace;
+      font-size: 15px;
+    }
+
+    .manual-answer { margin: 4px 0 18px; }
+    .manual-input {
+      width: 100%; box-sizing: border-box; min-height: 54px;
+      border: 2px solid var(--border); border-radius: 13px;
+      padding: 14px 16px; font-family: Consolas, "Courier New", monospace;
+      font-size: 17px; color: var(--text); background: #FFFFFF; outline: none;
+    }
+    .manual-input:focus { border-color: var(--text); box-shadow: 0 0 0 2px rgba(29,95,99,.08); }
+    .manual-input.correct { background: var(--correct); border-color: #D4BC69; }
+    .manual-input.wrong { background: var(--wrong); border-color: #C67979; }
+    .manual-correct-answer { margin-top: 10px; font-family: Consolas, "Courier New", monospace; }
+
+    .answers {
+      display: grid;
+      gap: 11px;
+      margin-bottom: 18px;
+    }
+    .answer-hint {
+      margin: -7px 0 14px;
+      color: var(--muted);
+      font-size: 14px;
+      font-weight: 700;
+    }
+    .answer-btn {
+      width: 100%;
+      text-align: left;
+      background: white;
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 13px;
+      padding: 14px 16px;
+      cursor: pointer;
+      line-height: 1.45;
+    }
+    .answer-btn:hover:not(:disabled) { border-color: var(--text); }
+    .answer-btn.selected {
+      background: var(--selected);
+      border-color: var(--text);
+      box-shadow: inset 0 0 0 1px var(--text);
+    }
+    .answer-btn.correct {
+      background: var(--correct);
+      border-color: #D4BC69;
+    }
+    .answer-btn.wrong {
+      background: var(--wrong);
+      border-color: #C67979;
+    }
+    .answer-letter {
+      display: inline-flex;
+      width: 28px;
+      height: 28px;
+      align-items: center;
+      justify-content: center;
+      border-radius: 8px;
+      margin-right: 9px;
+      background: rgba(29,95,99,.08);
+      font-weight: 800;
+      vertical-align: top;
+    }
+    .explanation {
+      margin-top: 18px;
+      background: #F8FBF8;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 17px;
+    }
+    .explanation h4 { margin: 0 0 6px; }
+    .explanation p { margin: 0 0 12px; }
+    .explanation p:last-child { margin-bottom: 0; }
+
+    .learning-visual {
+      margin: 14px 0 16px;
+      padding: 14px;
+      border: 1px solid var(--border);
+      border-radius: 13px;
+      background: #FFFFFF;
+    }
+    .learning-visual h4 { margin: 0 0 10px; }
+    .learning-visual svg { display: block; width: 100%; max-width: 620px; height: auto; margin: 0 auto; }
+    .visual-caption { margin: 9px 0 0; text-align: center; color: var(--muted); font-size: 13px; }
+    .formula-map {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 8px;
+      max-width: 620px;
+      margin: 0 auto;
+    }
+    .formula-map div { border: 1px solid var(--border); border-radius: 9px; padding: 9px; text-align: center; background: #F8FBF8; }
+    .formula-map strong { display:block; margin-bottom:4px; }
+    @media (max-width: 620px) { .formula-map { grid-template-columns: 1fr; } }
+    .warning {
+      background: #FFF8E5;
+      border: 1px solid #E6CF8B;
+      border-radius: 12px;
+      padding: 12px 14px;
+      margin: 14px 0;
+    }
+    .result-big {
+      font-size: 48px;
+      font-weight: 800;
+      margin: 8px 0;
+    }
+    .pass { color: #2C7350; }
+    .fail { color: #9B3B3B; }
+    .review-list {
+      display: grid;
+      gap: 14px;
+      margin-top: 20px;
+    }
+    .review-item {
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 16px;
+      background: white;
+    }
+    .review-item h4 { margin: 0 0 10px; }
+    .review-item p { margin: 7px 0; }
+    .small { font-size: 14px; color: var(--muted); }
+    .count-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0,1fr));
+      gap: 12px;
+      margin: 16px 0;
+    }
+    .stat {
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 16px;
+      text-align: center;
+    }
+    .stat strong { display: block; font-size: 28px; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 14px;
+      background: white;
+    }
+    th, td {
+      border-bottom: 1px solid var(--border);
+      padding: 11px 9px;
+      text-align: left;
+      vertical-align: top;
+    }
+    th { background: #F3F8F3; }
+    .empty {
+      text-align: center;
+      padding: 36px 18px;
+    }
+    .disabled-note {
+      font-size: 13px;
+      color: var(--muted);
+      margin-top: 8px;
+    }
+    .footer-note {
+      margin-top: 20px;
+      color: var(--muted);
+      text-align: center;
+      font-size: 13px;
+    }
+    @media (max-width: 760px) {
+      .grid { grid-template-columns: 1fr; }
+      .count-grid { grid-template-columns: 1fr; }
+      .app-shell { width: min(100% - 18px, 1100px); padding-top: 16px; }
+      .card, .hero { padding: 17px; }
+      .topbar { align-items: flex-start; }
+      .header-line { flex-direction: column; }
+      .btn-row .btn { flex: 1 1 auto; }
+      th, td { font-size: 13px; padding: 8px 6px; }
+    }
+  
+  a {color:var(--text);text-underline-offset:3px;}
+  button:focus-visible,select:focus-visible,input:focus-visible,a:focus-visible,summary:focus-visible {outline:3px solid #b88921;outline-offset:3px;}
+  h2:focus {outline:none;}
+  input,select {font:inherit;color:var(--text);}
+  .eyebrow {font-size:11px;letter-spacing:.12em;font-weight:700;color:var(--muted);margin:0 0 8px;}
+  .brand {font-size:clamp(23px,4vw,34px);}
+  .hero-heading {display:flex;gap:24px;align-items:center;justify-content:space-between;}
+  .hero h2 {font-size:clamp(24px,4vw,32px);line-height:1.2;max-width:700px;}
+  .hero p {max-width:720px;}
+  .bank-number {text-align:center;background:#f4f9f3;border:1px solid var(--border);padding:15px 22px;border-radius:16px;min-width:145px;}
+  .bank-number strong {font-size:40px;line-height:1.1;display:block;}
+  .bank-number span {font-size:12px;}
+  .subject-pills {display:flex;gap:8px;flex-wrap:wrap;margin-top:24px;}
+  .mode-card .btn {align-self:flex-start;}
+  .mode-number {font-size:12px;font-weight:700;letter-spacing:.08em;color:var(--muted);margin-bottom:8px;}
+  .resume-strip {display:flex;align-items:center;justify-content:space-between;gap:16px;border:1px solid var(--border);background:#fff7df;border-radius:16px;padding:16px 22px;margin-bottom:20px;}
+  .count-card {border:1px solid var(--border);border-radius:16px;padding:24px;background:#f6faf5;color:var(--text);cursor:pointer;}
+  .count-card:hover {border-color:var(--text);background:var(--selected);}
+  .count-card strong {font-size:32px;display:block;}
+  .count-card span {font-size:14px;}
+  .question-text {font-size:22px;line-height:1.45;margin:20px 0 14px;}
+  .input-label {display:block;font-weight:700;margin:18px 0 8px;}
+  .manual-input {width:min(100%,460px);font-size:22px;}
+  .matching-rows {display:grid;gap:12px;margin:20px 0;}
+  .matching-row {display:grid;grid-template-columns:minmax(140px,1fr) minmax(200px,1.2fr);gap:12px;align-items:center;border:1px solid var(--border);border-radius:12px;padding:12px;}
+  .matching-row select {width:100%;min-width:0;padding:10px 8px;border:1px solid var(--border);border-radius:8px;background:white;}
+  .matching-row.correct,.manual-input.correct {background:var(--correct);}
+  .matching-row.wrong,.manual-input.wrong {background:var(--wrong);}
+  .preserve-lines {white-space:pre-line;overflow-wrap:anywhere;}
+  .explanation {margin:20px 0;border:1px solid var(--border);border-radius:14px;padding:18px;}
+  .explanation.good {background:#fff7df;}
+  .explanation.bad {background:#fdf1ef;}
+  .explanation h3,.explanation h4 {margin:0 0 8px;}
+  .explanation h4 {margin-top:16px;}
+  .explanation p:last-child {margin-bottom:0;}
+  .quiz-buttons {margin-top:22px;}
+  .question-nav {margin-top:24px;border-top:1px solid var(--border);padding-top:16px;}
+  summary {cursor:pointer;font-weight:700;}
+  .question-grid {display:flex;flex-wrap:wrap;gap:8px;padding:12px 0;}
+  .nav-dot {min-width:38px;height:38px;border:1px solid var(--border);border-radius:9px;color:var(--text);background:white;cursor:pointer;}
+  .nav-dot.filled {background:var(--selected);}
+  .nav-dot.current {border:2px solid var(--text);font-weight:700;}
+  .review-heading {display:flex;gap:12px;align-items:flex-start;justify-content:space-between;}
+  .review-heading h3 {margin:0 0 12px;font-size:18px;}
+  .score-badge {padding:4px 9px;border-radius:8px;white-space:nowrap;font-weight:700;}
+  .score-badge.good {background:var(--correct);}
+  .score-badge.bad {background:var(--wrong);}
+  .stats-grid,.subject-results {display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin:20px 0;}
+  .subject-results .stat strong {font-size:22px;}
+  .table-scroll {overflow-x:auto;}
+  .backup-panel {border:1px solid var(--border);border-radius:14px;padding:18px;background:#f6faf5;margin:28px 0 20px;}
+  .notice {border:1px solid var(--border);background:var(--correct);padding:14px;border-radius:12px;}
+  .resource-links {display:grid;gap:12px;margin:20px 0;}
+  .resource-links a {border:1px solid var(--border);padding:14px 16px;border-radius:12px;background:#f7fbf7;}
+  .plain-list {padding-left:22px;}
+  .plain-list li {margin:10px 0;}
+  .btn.danger {color:#8c3434;border-color:#c17b7b;background:white;}
+  .footer-note {font-size:13px;}
+  .topic-card:disabled {opacity:.55;cursor:default;}
+  .answer-btn {display:flex;align-items:flex-start;gap:12px;text-align:left;}
+  .answer-letter {flex-shrink:0;}
+  @media(max-width:760px) {
+    .hero-heading {align-items:flex-start;}
+    .bank-number {min-width:105px;padding:12px;}
+    .bank-number strong {font-size:32px;}
+    .stats-grid,.subject-results {grid-template-columns:repeat(2,minmax(0,1fr));}
+    .matching-row {grid-template-columns:1fr;}
+    .question-text {font-size:19px;}
+    .eyebrow {font-size:10px;letter-spacing:.06em;}
+    .topbar {flex-wrap:wrap;}
+    .count-grid {grid-template-columns:repeat(3,minmax(0,1fr));}
+    .count-card {padding:18px 8px;}
+    .hero-heading {flex-direction:column;}
+    .bank-number {display:none;}
+    .resume-strip {align-items:flex-start;flex-direction:column;}
+    .review-heading h3 {font-size:17px;}
+  }
+</style>
+</head>
+<body>
+<div class="app-shell"><main id="app"></main><footer class="footer-note">Прогрес зберігається в цьому браузері. Копію можна завантажити в розділі «Мій прогрес».</footer></div>
+<noscript>Для роботи тренажера ввімкни JavaScript у браузері.</noscript>
+<script id="app-data" type="application/json">{"version":1,"title":"НМТ: тренуємо пам’ять","subjects":[{"id":"ukr","name":"Українська мова","description":"Правопис, слова, частини мови, речення та пунктуація.","url":"https://testportal.gov.ua/ukrayinska-mova-2026/"},{"id":"hist","name":"Історія України","description":"Події, дати, діячі, причинні зв’язки та хронологія.","url":"https://testportal.gov.ua/istoriya-ukrayiny-2026/"},{"id":"math","name":"Математика","description":"Числа, рівняння, функції, геометрія та ймовірність.","url":"https://testportal.gov.ua/matematyka-2026/"},{"id":"phys","name":"Фізика","description":"Механіка, теплота, електрика, хвилі та оптика.","url":"https://testportal.gov.ua/fizyka-2026/"}],"questions":[{"id":"ukr-001","subject":"ukr","topic":"Апостроф","type":"single","question":"У якому слові на місці двох крапок потрібно поставити апостроф?","options":["пір..я","св..ято","моркв..яний","цв..ях"],"correct":"пір..я","explanation":"Правильно: пір’я. У цьому слові перед я після р пишемо апостроф. Свято, морквяний і цвях пишемо без апострофа.","mistake":"Не став апостроф автоматично перед кожною буквою я.","source":"Авторська тренувальна вправа"},{"id":"ukr-002","subject":"ukr","topic":"М’який знак","type":"single","question":"У якому слові на місці двох крапок потрібно написати м’який знак?","options":["різ..бяр","мен..ший","тон..ший","кін..чик"],"correct":"різ..бяр","explanation":"Правильно: різьбяр. У словах менший, тонший, кінчик м’якого знака на цьому місці немає.","mistake":"","source":"Авторська тренувальна вправа"},{"id":"ukr-003","subject":"ukr","topic":"Спрощення приголосних","type":"single","question":"Яке слово написано правильно?","options":["тижневий","тиждневий","тиждньовий","тижневвий"],"correct":"тижневий","explanation":"У слові тижневий відбувається спрощення в групі приголосних: тиждень → тижневий.","mistake":"","source":"Авторська тренувальна вправа"},{"id":"ukr-004","subject":"ukr","topic":"Подвоєння букв","type":"single","question":"Оберіть правильне написання слова.","options":["життя","житя","жіття","житття"],"correct":"життя","explanation":"В іменнику життя подовжений м’який приголосний передаємо двома буквами т.","mistake":"","source":"Авторська тренувальна вправа"},{"id":"ukr-005","subject":"ukr","topic":"Префікси","type":"single","question":"У якому слові на місці двох крапок потрібно написати префікс с-?","options":["..ховати","..берегти","..робити","..шити"],"correct":"..ховати","explanation":"Перед к, п, т, ф, х пишемо префікс с-: сховати. Правильно також: зберегти, зробити, зшити.","mistake":"Правило стосується префікса с-, а не будь-якої букви с у слові.","source":"Авторська тренувальна вправа"},{"id":"ukr-006","subject":"ukr","topic":"Префікси","type":"single","question":"У якому слові в пропуску потрібно написати е?","options":["пр..красний","пр..їхати","пр..нести","пр..шити"],"correct":"пр..красний","explanation":"Прекрасний має префікс пре-, що передає високий ступінь ознаки. Приїхати, принести, пришити пишемо з при-.","mistake":"","source":"Авторська тренувальна вправа"},{"id":"ukr-007","subject":"ukr","topic":"Правопис слів із пів","type":"single","question":"Як правильно написати сполуку зі значенням «половина яблука»?","options":["пів яблука","півяблука","пів-яблука","пів’яблука"],"correct":"пів яблука","explanation":"Пів у значенні половини з іменником у родовому відмінку однини пишемо окремо: пів яблука, пів години.","mistake":"Не перенось сюди написання слів, які позначають єдине поняття, як-от півострів.","source":"Авторська тренувальна вправа"},{"id":"ukr-008","subject":"ukr","topic":"Складні слова","type":"single","question":"Оберіть нормативне написання назви проміжного напрямку.","options":["північно-східний","північносхідний","північно східний","півночно-східний"],"correct":"північно-східний","explanation":"Складні прикметники на позначення проміжних сторін світу пишемо з дефісом: північно-східний.","mistake":"","source":"Авторська тренувальна вправа"},{"id":"ukr-009","subject":"ukr","topic":"Правопис сполук","type":"single","question":"Як правильно написати ввічливе прохання?","options":["будь ласка","будьласка","будь-ласка","будьте-ласка"],"correct":"будь ласка","explanation":"Сполуку будь ласка пишемо двома словами, без дефіса.","mistake":"","source":"Авторська тренувальна вправа"},{"id":"ukr-010","subject":"ukr","topic":"Лексична норма","type":"single","question":"Яка сполука відповідає літературній нормі?","options":["брати участь","приймати участь","брати учасття","приймати учасття"],"correct":"брати участь","explanation":"Нормативна сполука: брати участь. Наприклад: брати участь у змаганнях.","mistake":"","source":"Авторська тренувальна вправа"},{"id":"ukr-011","subject":"ukr","topic":"Антоніми","type":"single","question":"Оберіть антонім до слова «щедрий».","options":["скупий","добрий","веселий","відвертий"],"correct":"скупий","explanation":"Антоніми мають протилежні значення. Щедрий охоче ділиться, а скупий уникає витрат і неохоче ділиться.","mistake":"","source":"Авторська тренувальна вправа"},{"id":"ukr-012","subject":"ukr","topic":"Фразеологія","type":"single","question":"Що означає фразеологізм «байдики бити»?","options":["ледарювати","наполегливо працювати","дуже поспішати","тікати від небезпеки"],"correct":"ледарювати","explanation":"Байдики бити означає нічого не робити, ледарювати. Значення сталого вислову не дорівнює буквальному значенню його слів.","mistake":"","source":"Авторська тренувальна вправа"},{"id":"ukr-013","subject":"ukr","topic":"Рід іменника","type":"single","question":"Який іменник належить до чоловічого роду?","options":["біль","путь","ніч","радість"],"correct":"біль","explanation":"Біль — іменник чоловічого роду: сильний біль. Путь, ніч і радість — жіночого роду.","mistake":"","source":"Авторська тренувальна вправа"},{"id":"ukr-014","subject":"ukr","topic":"Кличний відмінок","type":"single","question":"Яку форму імені потрібно вжити у звертанні: «..., допоможи мені»?","options":["Олегу","Олега","Олегом","Олегові"],"correct":"Олегу","explanation":"Для звертання вживаємо кличний відмінок: Олегу. Існує також нормативна форма Олеже; її немає серед варіантів цього завдання.","mistake":"","source":"Авторська тренувальна вправа"},{"id":"ukr-015","subject":"ukr","topic":"Числівник","type":"single","question":"Оберіть правильну сполуку слів.","options":["з двома учнями","з двома учень","з двох учні","з двум’я учнями"],"correct":"з двома учнями","explanation":"В орудному відмінку: двома учнями. Числівник та іменник мають правильні відмінкові форми.","mistake":"","source":"Авторська тренувальна вправа"},{"id":"ukr-016","subject":"ukr","topic":"Ступені порівняння","type":"single","question":"У якому варіанті правильно утворено вищий ступінь порівняння прикметника?","options":["більш зручний","більш зручніший","самий зручний","найбільш зручніший"],"correct":"більш зручний","explanation":"Складена форма вищого ступеня: більш зручний. Проста форма: зручніший. Їх не поєднуємо: більш зручніший — помилка.","mistake":"","source":"Авторська тренувальна вправа"},{"id":"ukr-017","subject":"ukr","topic":"Керування","type":"single","question":"Яка сполука побудована правильно?","options":["згідно з наказом","згідно наказу","згідно наказ","згідно з наказу"],"correct":"згідно з наказом","explanation":"Нормативне керування: згідно з + орудний відмінок. Отже, згідно з наказом.","mistake":"","source":"Авторська тренувальна вправа"},{"id":"ukr-018","subject":"ukr","topic":"Дієприслівниковий зворот","type":"single","question":"У якому реченні правильно вжито дієприслівниковий зворот?","options":["Повернувшись додому, я зателефонував сестрі.","Повернувшись додому, почався дощ.","Читаючи книжку, у мене згасла лампа.","Зайшовши до класу, пролунав дзвінок."],"correct":"Повернувшись додому, я зателефонував сестрі.","explanation":"Основну й додаткову дію має виконувати той самий діяч: я повернувся і я зателефонував.","mistake":"Не приписуй дію предмету, який її виконувати не може: дощ не повертався додому.","source":"Авторська тренувальна вправа"},{"id":"ukr-019","subject":"ukr","topic":"Тире між підметом і присудком","type":"single","question":"У якому реченні правильно розставлено розділові знаки?","options":["Київ — столиця України.","Київ, столиця України.","Київ: столиця України.","Київ; столиця України."],"correct":"Київ — столиця України.","explanation":"Між підметом і присудком, вираженими іменниками в називному відмінку, у такому реченні ставимо тире: Київ — столиця України.","mistake":"","source":"Авторська тренувальна вправа"},{"id":"ukr-020","subject":"ukr","topic":"Звертання","type":"single","question":"У якому реченні правильно відокремлено звертання?","options":["Мамо, я вже вдома.","Мамо я, вже вдома.","Мамо я вже, вдома.","Мамо я вже вдома."],"correct":"Мамо, я вже вдома.","explanation":"Слово мамо — звертання. На початку речення його відокремлюємо комою.","mistake":"","source":"Авторська тренувальна вправа"},{"id":"ukr-021","subject":"ukr","topic":"Частини мови","type":"matching","question":"Установіть відповідність між словом і частиною мови.","options":["іменник","прикметник","дієслово","прислівник","займенник"],"correct":["прислівник","дієслово","прикметник","іменник"],"explanation":"Швидко відповідає на як? — прислівник; читати на що робити? — дієслово; зелений на який? — прикметник; радість на що? — іменник.","mistake":"","source":"Авторська тренувальна вправа","left":["швидко","читати","зелений","радість"]},{"id":"ukr-022","subject":"ukr","topic":"Види речень","type":"matching","question":"Установіть відповідність між реченням і його видом.","options":["просте","складносурядне","складнопідрядне","безсполучникове складне","складне з різними видами зв’язку"],"correct":["складнопідрядне","складносурядне","безсполучникове складне","просте"],"explanation":"Коли вводить підрядну частину; і поєднує рівноправні частини; у третьому реченні дві частини поєднані без сполучника; в останньому одна граматична основа.","mistake":"","source":"Авторська тренувальна вправа","left":["Коли закінчився урок, учні вийшли з класу.","Зійшло сонце, і заспівали птахи.","Я знаю: ти повернешся.","Учні прочитали цікаву книжку."]},{"id":"ukr-023","subject":"ukr","topic":"Члени речення","type":"matching","question":"Визначте роль виділеного словом елемента в реченні: «Уранці учні уважно читали книжку».","options":["підмет","присудок","додаток","обставина","означення"],"correct":["підмет","присудок","додаток","обставина"],"explanation":"Учні — хто? — підмет; читали — що робили? — присудок; книжку — що? — додаток; уважно — як? — обставина способу дії.","mistake":"","source":"Авторська тренувальна вправа","left":["учні","читали","книжку","уважно"]},{"id":"ukr-024","subject":"ukr","topic":"Фразеологія","type":"matching","question":"Поєднайте фразеологізм із його значенням.","options":["червоніти","дуже мало","запам’ятати","обманювати","наполегливо працювати"],"correct":["запам’ятати","обманювати","червоніти","дуже мало"],"explanation":"Зарубати на носі — добре запам’ятати; водити за ніс — обманювати; пекти раків — червоніти; як кіт наплакав — дуже мало.","mistake":"","source":"Авторська тренувальна вправа","left":["зарубати на носі","водити за ніс","пекти раків","як кіт наплакав"]},{"id":"ukr-025","subject":"ukr","topic":"Стилі мовлення","type":"matching","question":"Поєднайте приклад тексту з найбільш відповідним стилем мовлення.","options":["художній","науковий","розмовний","офіційно-діловий","публіцистичний"],"correct":["науковий","офіційно-діловий","розмовний","художній"],"explanation":"Опис наукового дослідження — науковий стиль; документ установи — офіційно-діловий; побутова розмова — розмовний; ліричний вірш — художній.","mistake":"","source":"Авторська тренувальна вправа","left":["Наукова стаття з описом результатів дослідження","Заява до установи","Побутовий діалог друзів на перерві","Ліричний вірш про осінній ліс"]},{"id":"hist-001","subject":"hist","topic":"Русь-Україна","type":"single","question":"З яким князем пов’язують хрещення Русі 988 року?","options":["Володимир Великий","Ярослав Мудрий","Данило Романович","Святослав Ігорович"],"correct":"Володимир Великий","explanation":"Хрещення Русі 988 року пов’язують із князем Володимиром Великим. Ярослав Мудрий правив пізніше.","mistake":"","source":"Авторська тренувальна вправа"},{"id":"hist-002","subject":"hist","topic":"Українські землі у XVI столітті","type":"single","question":"Яка унія 1569 року об’єднала Польське королівство та Велике князівство Литовське в Річ Посполиту?","options":["Люблінська","Берестейська","Кревська","Гадяцька угода"],"correct":"Люблінська","explanation":"Люблінська унія 1569 року утворила Річ Посполиту. Берестейська унія 1596 року стосувалася церковного життя.","mistake":"","source":"Авторська тренувальна вправа"},{"id":"hist-003","subject":"hist","topic":"Церковне життя","type":"single","question":"Яку дату пов’язують із Берестейською церковною унією?","options":["1596 рік","1569 рік","1648 рік","1654 рік"],"correct":"1596 рік","explanation":"Берестейська церковна унія відбулася 1596 року. Унія 1569 року була Люблінською.","mistake":"Не плутай політичне об’єднання держав із церковною унією.","source":"Авторська тренувальна вправа"},{"id":"hist-004","subject":"hist","topic":"Козацька революція","type":"single","question":"У якому році розпочалася Національно-визвольна війна під проводом Богдана Хмельницького?","options":["1648","1569","1596","1709"],"correct":"1648","explanation":"Початок Національно-визвольної війни під проводом Богдана Хмельницького — 1648 рік.","mistake":"","source":"Авторська тренувальна вправа"},{"id":"hist-005","subject":"hist","topic":"Козацька держава","type":"single","question":"У якому році відбулася Переяславська рада за гетьманування Богдана Хмельницького?","options":["1654","1648","1659","1686"],"correct":"1654","explanation":"Переяславська рада відбулася в січні 1654 року. Важливо відрізняти дату ради від початку війни 1648 року.","mistake":"","source":"Авторська тренувальна вправа"},{"id":"hist-006","subject":"hist","topic":"Козацька держава","type":"single","question":"Хто був гетьманом під час перемоги козацько-кримського війська в Конотопській битві 1659 року?","options":["Іван Виговський","Богдан Хмельницький","Петро Дорошенко","Пилип Орлик"],"correct":"Іван Виговський","explanation":"Конотопська битва 1659 року пов’язана з гетьманом Іваном Виговським та його союзом із Кримським ханством.","mistake":"","source":"Авторська тренувальна вправа"},{"id":"hist-007","subject":"hist","topic":"Козацька держава","type":"single","question":"З ким пов’язаний документ «Пакти й Конституції прав і вольностей Війська Запорозького» 1710 року?","options":["Пилип Орлик","Іван Мазепа","Іван Скоропадський","Кирило Розумовський"],"correct":"Пилип Орлик","explanation":"Документ 1710 року відомий як Конституція Пилипа Орлика. Його ухвалили після обрання Орлика гетьманом в еміграції.","mistake":"","source":"Авторська тренувальна вправа"},{"id":"hist-008","subject":"hist","topic":"Українські землі у XVIII столітті","type":"single","question":"У якому році за наказом Катерини II було зруйновано Нову Запорозьку Січ?","options":["1775","1709","1764","1783"],"correct":"1775","explanation":"Нову Запорозьку Січ зруйнували 1775 року. 1764 року було ліквідовано гетьманство.","mistake":"","source":"Авторська тренувальна вправа"},{"id":"hist-009","subject":"hist","topic":"Українська культура","type":"single","question":"Хто є автором «Енеїди», перші частини якої надрукували 1798 року?","options":["Іван Котляревський","Тарас Шевченко","Іван Франко","Пантелеймон Куліш"],"correct":"Іван Котляревський","explanation":"Перші частини «Енеїди» Івана Котляревського вийшли 1798 року. Твір пов’язують зі становленням нової української літератури.","mistake":"","source":"Авторська тренувальна вправа"},{"id":"hist-010","subject":"hist","topic":"Національне відродження","type":"single","question":"У якому місті діяло Кирило-Мефодіївське братство?","options":["Київ","Львів","Одеса","Чернівці"],"correct":"Київ","explanation":"Кирило-Мефодіївське братство діяло в Києві в середині 1840-х років.","mistake":"","source":"Авторська тренувальна вправа"},{"id":"hist-011","subject":"hist","topic":"Західноукраїнські землі","type":"single","question":"Який альманах видала «Руська трійця» 1837 року?","options":["«Русалка Дністровая»","«Кобзар»","«Основа»","«Енеїда»"],"correct":"«Русалка Дністровая»","explanation":"«Руська трійця» видала альманах «Русалка Дністровая» 1837 року. «Кобзар» Тараса Шевченка вперше вийшов 1840 року.","mistake":"","source":"Авторська тренувальна вправа"},{"id":"hist-012","subject":"hist","topic":"Імперська політика","type":"single","question":"Який документ 1863 року обмежив друк українською мовою, зокрема релігійної та навчальної літератури?","options":["Валуєвський циркуляр","Емський указ","Конституція Пилипа Орлика","Акт Злуки"],"correct":"Валуєвський циркуляр","explanation":"Валуєвський циркуляр видали 1863 року. Емський указ 1876 року посилив обмеження щодо української мови.","mistake":"","source":"Авторська тренувальна вправа"},{"id":"hist-013","subject":"hist","topic":"Імперська політика","type":"single","question":"У якому році було підписано Емський указ?","options":["1876","1837","1848","1863"],"correct":"1876","explanation":"Емський указ 1876 року забороняв, зокрема, ввезення українських видань з-за кордону та обмежував друк українською мовою.","mistake":"","source":"Авторська тренувальна вправа"},{"id":"hist-014","subject":"hist","topic":"Українська революція","type":"single","question":"Хто очолив Українську Центральну Раду?","options":["Михайло Грушевський","Павло Скоропадський","Євген Петрушевич","Августин Волошин"],"correct":"Михайло Грушевський","explanation":"Головою Української Центральної Ради був Михайло Грушевський. Центральну Раду створили 1917 року.","mistake":"","source":"Авторська тренувальна вправа"},{"id":"hist-015","subject":"hist","topic":"Українська революція","type":"single","question":"Який Універсал Центральної Ради проголосив незалежність Української Народної Республіки?","options":["IV Універсал","I Універсал","II Універсал","III Універсал"],"correct":"IV Універсал","explanation":"Незалежність УНР проголосив IV Універсал у січні 1918 року. III Універсал проголосив УНР, але ще не повну незалежність.","mistake":"","source":"Авторська тренувальна вправа"},{"id":"hist-016","subject":"hist","topic":"Українська революція","type":"single","question":"Коли було урочисто проголошено Акт Злуки УНР і ЗУНР?","options":["22 січня 1919 року","22 січня 1918 року","29 квітня 1918 року","24 серпня 1991 року"],"correct":"22 січня 1919 року","explanation":"Акт Злуки УНР і ЗУНР урочисто проголосили 22 січня 1919 року в Києві.","mistake":"","source":"Авторська тренувальна вправа"},{"id":"hist-017","subject":"hist","topic":"Україна в міжвоєнний період","type":"single","question":"Якими роками датують Голодомор — геноцид Українського народу?","options":["1932–1933","1921–1923","1939–1941","1946–1947"],"correct":"1932–1933","explanation":"Голодомор як геноцид Українського народу датують 1932–1933 роками. Інші наведені періоди не є датуванням цієї події.","mistake":"","source":"Авторська тренувальна вправа"},{"id":"hist-018","subject":"hist","topic":"Західноукраїнські землі","type":"single","question":"Хто став президентом Карпатської України в березні 1939 року?","options":["Августин Волошин","Михайло Грушевський","Євген Петрушевич","Володимир Винниченко"],"correct":"Августин Волошин","explanation":"У березні 1939 року президентом Карпатської України обрали Августина Волошина.","mistake":"","source":"Авторська тренувальна вправа"},{"id":"hist-019","subject":"hist","topic":"Незалежна Україна","type":"single","question":"Коли Верховна Рада ухвалила Конституцію незалежної України?","options":["28 червня 1996 року","24 серпня 1991 року","1 грудня 1991 року","16 липня 1990 року"],"correct":"28 червня 1996 року","explanation":"Конституцію України ухвалили 28 червня 1996 року. 24 серпня 1991 року ухвалили Акт проголошення незалежності.","mistake":"","source":"Авторська тренувальна вправа"},{"id":"hist-020","subject":"hist","topic":"Здобуття незалежності","type":"single","question":"Коли Верховна Рада ухвалила Акт проголошення незалежності України?","options":["24 серпня 1991 року","16 липня 1990 року","1 грудня 1991 року","28 червня 1996 року"],"correct":"24 серпня 1991 року","explanation":"Акт проголошення незалежності України ухвалили 24 серпня 1991 року. На референдумі 1 грудня 1991 року громадяни підтвердили його.","mistake":"","source":"Авторська тренувальна вправа"},{"id":"hist-021","subject":"hist","topic":"Події та дати","type":"matching","question":"Поєднайте історичну подію з датою.","options":["1648","988","1710","1569","1596"],"correct":["988","1569","1648","1710"],"explanation":"Хрещення Русі — 988; Люблінська унія — 1569; початок війни — 1648; Конституція Пилипа Орлика — 1710.","mistake":"","source":"Авторська тренувальна вправа","left":["Хрещення Русі за Володимира Великого","Люблінська унія","Початок війни під проводом Богдана Хмельницького","Конституція Пилипа Орлика"]},{"id":"hist-022","subject":"hist","topic":"Історичні діячі","type":"matching","question":"Поєднайте діяча з відповідною історичною роллю.","options":["гетьман Української Держави 1918 року","президент Карпатської України","голова Української Центральної Ради","дисидент, один із лідерів Народного руху України","автор «Енеїди»"],"correct":["голова Української Центральної Ради","гетьман Української Держави 1918 року","президент Карпатської України","дисидент, один із лідерів Народного руху України"],"explanation":"Грушевський очолював Центральну Раду; Скоропадський був гетьманом Української Держави; Волошин — президентом Карпатської України; Чорновіл — дисидентом і діячем Народного руху.","mistake":"","source":"Авторська тренувальна вправа","left":["Михайло Грушевський","Павло Скоропадський","Августин Волошин","В’ячеслав Чорновіл"]},{"id":"hist-023","subject":"hist","topic":"Хронологія","type":"order","question":"Розташуйте події від найдавнішої до найпізнішої.","options":["Початок війни під проводом Богдана Хмельницького","Ухвалення Конституції Пилипа Орлика","Зруйнування Нової Запорозької Січі","Вихід перших частин «Енеїди» Івана Котляревського"],"correct":["Початок війни під проводом Богдана Хмельницького","Ухвалення Конституції Пилипа Орлика","Зруйнування Нової Запорозької Січі","Вихід перших частин «Енеїди» Івана Котляревського"],"explanation":"Послідовність за роками: 1648 → 1710 → 1775 → 1798.","mistake":"Спочатку пригадай дату кожної події, потім порівняй роки.","source":"Авторська тренувальна вправа"},{"id":"hist-024","subject":"hist","topic":"Національне відродження","type":"multiple","question":"Оберіть трьох учасників «Руської трійці».","options":["Маркіян Шашкевич","Іван Вагилевич","Яків Головацький","Тарас Шевченко","Іван Франко","Іван Котляревський","Леся Українка"],"correct":["Маркіян Шашкевич","Іван Вагилевич","Яків Головацький"],"explanation":"До «Руської трійці» входили Маркіян Шашкевич, Іван Вагилевич і Яків Головацький.","mistake":"","source":"Авторська тренувальна вправа","selectCount":3},{"id":"hist-025","subject":"hist","topic":"Українська революція","type":"multiple","question":"Оберіть три події, які відбулися 1917 року.","options":["Створення Української Центральної Ради","Проголошення I Універсалу Центральної Ради","Проголошення III Універсалу Центральної Ради","Проголошення IV Універсалу Центральної Ради","Урочисте проголошення Акта Злуки УНР і ЗУНР","Прихід Павла Скоропадського до влади","Ухвалення Конституції незалежної України"],"correct":["Створення Української Центральної Ради","Проголошення I Універсалу Центральної Ради","Проголошення III Універсалу Центральної Ради"],"explanation":"Центральну Раду створили 1917 року; I та III Універсали проголосили того ж року. IV Універсал і гетьманський переворот — 1918; Акт Злуки — 1919; Конституція — 1996.","mistake":"","source":"Авторська тренувальна вправа","selectCount":3},{"id":"math-001","subject":"math","topic":"Відсотки","type":"single","question":"Знайдіть 20 % від числа 200.","options":["40","20","80","100","160"],"correct":"40","explanation":"20 % = 0,2. Обчислюємо: 200 × 0,2 = 40.","mistake":"","source":"Авторська тренувальна вправа"},{"id":"math-002","subject":"math","topic":"Відсотки","type":"single","question":"Товар коштував 600 грн. Ціну знизили на 15 %. Яка нова ціна?","options":["510 грн","90 грн","585 грн","690 грн","450 грн"],"correct":"510 грн","explanation":"Знижка: 600 × 0,15 = 90 грн. Нова ціна: 600 − 90 = 510 грн.","mistake":"90 грн — сума знижки, а не нова ціна.","source":"Авторська тренувальна вправа"},{"id":"math-003","subject":"math","topic":"Лінійні рівняння","type":"single","question":"Розв’яжіть рівняння 3x − 7 = 11.","options":["6","4","5","9","12"],"correct":"6","explanation":"3x = 11 + 7 = 18; x = 18 / 3 = 6.","mistake":"","source":"Авторська тренувальна вправа"},{"id":"math-004","subject":"math","topic":"Квадратні рівняння","type":"single","question":"Знайдіть суму коренів рівняння x² − 5x + 6 = 0.","options":["5","−5","6","−6","1"],"correct":"5","explanation":"За теоремою Вієта сума коренів дорівнює −b/a = 5. Самі корені: 2 і 3.","mistake":"","source":"Авторська тренувальна вправа"},{"id":"math-005","subject":"math","topic":"Степені","type":"single","question":"Обчисліть 2⁻³.","options":["1/8","−8","−6","1/6","8"],"correct":"1/8","explanation":"Від’ємний показник: 2⁻³ = 1/2³ = 1/8.","mistake":"Мінус у показнику не робить значення степеня від’ємним.","source":"Авторська тренувальна вправа"},{"id":"math-006","subject":"math","topic":"Логарифми","type":"single","question":"Обчисліть log₂ 32.","options":["5","2","3","4","6"],"correct":"5","explanation":"Логарифм відповідає на запитання: до якого степеня треба піднести 2, щоб отримати 32? Оскільки 2⁵ = 32, відповідь 5.","mistake":"","source":"Авторська тренувальна вправа"},{"id":"math-007","subject":"math","topic":"Область визначення","type":"single","question":"Знайдіть область визначення функції y = √(x − 4).","options":["x ≥ 4","x > 4","x ≤ 4","x ≠ 4","усі дійсні x"],"correct":"x ≥ 4","explanation":"Підкореневий вираз має бути невід’ємним: x − 4 ≥ 0, отже x ≥ 4. Значення x = 4 дозволене.","mistake":"","source":"Авторська тренувальна вправа"},{"id":"math-008","subject":"math","topic":"Лінійна функція","type":"single","question":"Знайдіть y, якщо y = 2x − 3 та x = 4.","options":["5","−5","8","11","1"],"correct":"5","explanation":"Підставляємо x = 4: y = 2 × 4 − 3 = 5.","mistake":"","source":"Авторська тренувальна вправа"},{"id":"math-009","subject":"math","topic":"Тригонометрія","type":"single","question":"Чому дорівнює sin 30°?","options":["1/2","0","1","√3/2","√2/2"],"correct":"1/2","explanation":"Табличне значення: sin 30° = 1/2. Не плутай із cos 30° = √3/2.","mistake":"","source":"Авторська тренувальна вправа"},{"id":"math-010","subject":"math","topic":"Ймовірність","type":"single","question":"У коробці 3 червоні та 2 сині однакові на дотик кульки. Навмання виймають одну кульку. Яка ймовірність вийняти червону?","options":["3/5","2/5","1/3","1/2","3/2"],"correct":"3/5","explanation":"Усього 5 рівноймовірних результатів, сприятливих — 3. Ймовірність: 3/5.","mistake":"","source":"Авторська тренувальна вправа"},{"id":"math-011","subject":"math","topic":"Статистика","type":"single","question":"Знайдіть медіану набору чисел 2, 4, 7, 8, 12.","options":["7","4","6,6","8","12"],"correct":"7","explanation":"Числа вже впорядковані. Для п’яти значень медіана — третє значення: 7.","mistake":"Середнє арифметичне та медіана можуть бути різними.","source":"Авторська тренувальна вправа"},{"id":"math-012","subject":"math","topic":"Арифметична прогресія","type":"single","question":"В арифметичній прогресії a₁ = 3, d = 4. Знайдіть a₆.","options":["23","24","27","19","7"],"correct":"23","explanation":"aₙ = a₁ + (n − 1)d. Тоді a₆ = 3 + 5 × 4 = 23.","mistake":"","source":"Авторська тренувальна вправа"},{"id":"math-013","subject":"math","topic":"Геометрична прогресія","type":"single","question":"У геометричній прогресії b₁ = 2, q = 3. Знайдіть b₄.","options":["54","18","24","81","162"],"correct":"54","explanation":"bₙ = b₁qⁿ⁻¹. Отже b₄ = 2 × 3³ = 54.","mistake":"","source":"Авторська тренувальна вправа"},{"id":"math-014","subject":"math","topic":"Планіметрія","type":"single","question":"Два кути трикутника дорівнюють 50° та 60°. Знайдіть третій кут.","options":["70°","50°","60°","110°","130°"],"correct":"70°","explanation":"Сума кутів трикутника — 180°. Третій кут: 180° − 50° − 60° = 70°.","mistake":"","source":"Авторська тренувальна вправа"},{"id":"math-015","subject":"math","topic":"Нерівності","type":"single","question":"Розв’яжіть нерівність 2x + 3 > 11.","options":["x > 4","x < 4","x > 7","x ≥ 4","x < 7"],"correct":"x > 4","explanation":"2x > 8; після ділення на додатне число 2 знак не змінюється: x > 4.","mistake":"","source":"Авторська тренувальна вправа"},{"id":"math-016","subject":"math","topic":"Планіметрія","type":"number","question":"Сторони прямокутника дорівнюють 6 см і 8 см. Знайдіть довжину діагоналі в сантиметрах.","options":[],"correct":"10","explanation":"За теоремою Піфагора: d = √(6² + 8²) = √100 = 10 см.","mistake":"","source":"Авторська тренувальна вправа"},{"id":"math-017","subject":"math","topic":"Площі","type":"number","question":"Катети прямокутного трикутника дорівнюють 6 см і 8 см. Знайдіть його площу в см².","options":[],"correct":"24","explanation":"Площа прямокутного трикутника: S = ab/2 = 6 × 8 / 2 = 24 см².","mistake":"","source":"Авторська тренувальна вправа"},{"id":"math-018","subject":"math","topic":"Стереометрія","type":"number","question":"Циліндр має радіус 2 см і висоту 5 см. Його об’єм дорівнює kπ см³. Знайдіть k.","options":[],"correct":"20","explanation":"V = πr²h = π × 2² × 5 = 20π см³. Отже k = 20.","mistake":"У відповідь потрібен коефіцієнт перед π, а не весь вираз.","source":"Авторська тренувальна вправа"},{"id":"math-019","subject":"math","topic":"Стереометрія","type":"number","question":"Об’єм кулі дорівнює 36π см³. Знайдіть радіус кулі в сантиметрах.","options":[],"correct":"3","explanation":"V = 4πr³/3. Маємо 4r³/3 = 36; r³ = 27; r = 3 см.","mistake":"","source":"Авторська тренувальна вправа"},{"id":"math-020","subject":"math","topic":"Логарифмічні рівняння","type":"number","question":"Розв’яжіть рівняння log₂ x = 3.","options":[],"correct":"8","explanation":"За означенням логарифма x = 2³ = 8. Умова x > 0 виконується.","mistake":"","source":"Авторська тренувальна вправа"},{"id":"math-021","subject":"math","topic":"Похідна","type":"number","question":"Знайдіть значення похідної функції f(x) = 3x² − 2x у точці x = 2.","options":[],"correct":"10","explanation":"f′(x) = 6x − 2. Тоді f′(2) = 12 − 2 = 10.","mistake":"","source":"Авторська тренувальна вправа"},{"id":"math-022","subject":"math","topic":"Інтеграл","type":"number","question":"Обчисліть визначений інтеграл функції 3x² від 0 до 2.","options":[],"correct":"8","explanation":"Первісна для 3x² — x³. За формулою Ньютона–Лейбніца: 2³ − 0³ = 8.","mistake":"","source":"Авторська тренувальна вправа"},{"id":"math-023","subject":"math","topic":"Функції","type":"matching","question":"Поєднайте функцію з її властивістю на всій області визначення.","options":["парна функція","непарна функція","зростає та набуває лише додатних значень","стала функція","набуває лише від’ємних значень"],"correct":["парна функція","непарна функція","зростає та набуває лише додатних значень"],"explanation":"Для x² виконується f(−x) = f(x); для x³: f(−x) = −f(x); показникова функція 2ˣ зростає й завжди додатна.","mistake":"","source":"Авторська тренувальна вправа","left":["y = x²","y = x³","y = 2ˣ"]},{"id":"math-024","subject":"math","topic":"Площі фігур","type":"matching","question":"Поєднайте фігуру з її площею в квадратних сантиметрах.","options":["9","14","24","48","12"],"correct":["9","14","24"],"explanation":"Квадрат: 3² = 9. Прямокутник: 2 × 7 = 14. Ромб: d₁d₂/2 = 6 × 8 / 2 = 24.","mistake":"","source":"Авторська тренувальна вправа","left":["Квадрат зі стороною 3 см","Прямокутник зі сторонами 2 см і 7 см","Ромб із діагоналями 6 см і 8 см"]},{"id":"math-025","subject":"math","topic":"Тригонометрія","type":"matching","question":"Поєднайте тригонометричний вираз із його значенням.","options":["0","1/2","1","−1","√3"],"correct":["1/2","1","0"],"explanation":"Табличні значення: sin 30° = 1/2; cos 0° = 1; tg 0° = 0.","mistake":"","source":"Авторська тренувальна вправа","left":["sin 30°","cos 0°","tg 0°"]},{"id":"phys-001","subject":"phys","topic":"Одиниці SI","type":"single","question":"Яка одиниця є одиницею сили в системі SI?","options":["ньютон","джоуль","ват","паскаль","кулон"],"correct":"ньютон","explanation":"Одиниця сили — ньютон (Н). 1 Н = 1 кг·м/с². Джоуль — одиниця енергії, ват — потужності, паскаль — тиску.","mistake":"","source":"Авторська тренувальна вправа"},{"id":"phys-002","subject":"phys","topic":"Рівномірний рух","type":"number","question":"Тіло рухається рівномірно зі швидкістю 12 м/с. Який шлях у метрах воно пройде за 5 с?","options":[],"correct":"60","explanation":"Для рівномірного руху s = vt = 12 × 5 = 60 м.","mistake":"","source":"Авторська тренувальна вправа"},{"id":"phys-003","subject":"phys","topic":"Прискорення","type":"number","question":"Під час рівноприскореного прямолінійного руху швидкість зросла з 5 м/с до 20 м/с за 3 с. Знайдіть прискорення в м/с².","options":[],"correct":"5","explanation":"a = (v − v₀)/t = (20 − 5)/3 = 5 м/с².","mistake":"","source":"Авторська тренувальна вправа"},{"id":"phys-004","subject":"phys","topic":"Другий закон Ньютона","type":"number","question":"Рівнодійна сил надає тілу масою 2 кг прискорення 3 м/с². Знайдіть модуль рівнодійної в ньютонах.","options":[],"correct":"6","explanation":"За другим законом Ньютона F = ma = 2 × 3 = 6 Н.","mistake":"","source":"Авторська тренувальна вправа"},{"id":"phys-005","subject":"phys","topic":"Сила тяжіння","type":"number","question":"Знайдіть силу тяжіння, яка діє на тіло масою 5 кг. Вважайте g = 10 м/с². Відповідь у ньютонах.","options":[],"correct":"50","explanation":"F = mg = 5 × 10 = 50 Н.","mistake":"Маса вимірюється в кілограмах, сила — у ньютонах.","source":"Авторська тренувальна вправа"},{"id":"phys-006","subject":"phys","topic":"Тиск","type":"number","question":"Сила 100 Н діє перпендикулярно до поверхні площею 0,5 м². Знайдіть тиск у паскалях.","options":[],"correct":"200","explanation":"p = F/S = 100 / 0,5 = 200 Па.","mistake":"","source":"Авторська тренувальна вправа"},{"id":"phys-007","subject":"phys","topic":"Сила Архімеда","type":"number","question":"Тіло витісняє 0,002 м³ води. Знайдіть силу Архімеда в ньютонах. Густина води 1000 кг/м³; g = 10 м/с².","options":[],"correct":"20","explanation":"Fₐ = ρgV = 1000 × 10 × 0,002 = 20 Н.","mistake":"","source":"Авторська тренувальна вправа"},{"id":"phys-008","subject":"phys","topic":"Кінетична енергія","type":"number","question":"Тіло масою 2 кг рухається зі швидкістю 3 м/с. Знайдіть його кінетичну енергію в джоулях.","options":[],"correct":"9","explanation":"Eк = mv²/2 = 2 × 3² / 2 = 9 Дж.","mistake":"У формулі швидкість підноситься до квадрата.","source":"Авторська тренувальна вправа"},{"id":"phys-009","subject":"phys","topic":"Потенціальна енергія","type":"number","question":"Тіло масою 3 кг підняли на 4 м від нульового рівня. Знайдіть його потенціальну енергію в джоулях. g = 10 м/с².","options":[],"correct":"120","explanation":"Eп = mgh = 3 × 10 × 4 = 120 Дж.","mistake":"","source":"Авторська тренувальна вправа"},{"id":"phys-010","subject":"phys","topic":"Потужність","type":"number","question":"Механізм рівномірно виконав роботу 300 Дж за 6 с. Знайдіть середню потужність у ватах.","options":[],"correct":"50","explanation":"P = A/t = 300/6 = 50 Вт.","mistake":"","source":"Авторська тренувальна вправа"},{"id":"phys-011","subject":"phys","topic":"Кількість теплоти","type":"number","question":"На скільки джоулів збільшиться внутрішня енергія 0,5 кг води під час нагрівання на 20 °C без виконання роботи? c = 4200 Дж/(кг·°C), фазових переходів немає.","options":[],"correct":"42000","explanation":"Q = cmΔT = 4200 × 0,5 × 20 = 42 000 Дж. За відсутності роботи зміна внутрішньої енергії дорівнює отриманій теплоті.","mistake":"","source":"Авторська тренувальна вправа"},{"id":"phys-012","subject":"phys","topic":"Закон Ома","type":"number","question":"До резистора опором 4 Ом прикладено напругу 12 В. Знайдіть силу струму в амперах.","options":[],"correct":"3","explanation":"I = U/R = 12/4 = 3 А.","mistake":"","source":"Авторська тренувальна вправа"},{"id":"phys-013","subject":"phys","topic":"Послідовне з’єднання","type":"number","question":"Резистори 2 Ом і 4 Ом з’єднано послідовно. Знайдіть загальний опір в омах.","options":[],"correct":"6","explanation":"За послідовного з’єднання опори додаються: R = R₁ + R₂ = 2 + 4 = 6 Ом.","mistake":"","source":"Авторська тренувальна вправа"},{"id":"phys-014","subject":"phys","topic":"Паралельне з’єднання","type":"number","question":"Резистори 6 Ом і 3 Ом з’єднано паралельно. Знайдіть загальний опір в омах.","options":[],"correct":"2","explanation":"Для двох паралельних резисторів R = R₁R₂/(R₁ + R₂) = 18/9 = 2 Ом.","mistake":"Загальний опір паралельного з’єднання менший за опір кожного резистора.","source":"Авторська тренувальна вправа"},{"id":"phys-015","subject":"phys","topic":"Електрична потужність","type":"number","question":"Напруга на приладі 6 В, сила струму 2 А. Знайдіть електричну потужність у ватах.","options":[],"correct":"12","explanation":"P = UI = 6 × 2 = 12 Вт.","mistake":"","source":"Авторська тренувальна вправа"},{"id":"phys-016","subject":"phys","topic":"Електричний заряд","type":"number","question":"Через провідник протягом 30 с проходить сталий струм 2 А. Який заряд у кулонах пройшов через його переріз?","options":[],"correct":"60","explanation":"q = It = 2 × 30 = 60 Кл.","mistake":"","source":"Авторська тренувальна вправа"},{"id":"phys-017","subject":"phys","topic":"Механічні хвилі","type":"number","question":"Швидкість звуку 340 м/с, частота хвилі 170 Гц. Знайдіть довжину хвилі в метрах.","options":[],"correct":"2","explanation":"λ = v/ν = 340/170 = 2 м.","mistake":"","source":"Авторська тренувальна вправа"},{"id":"phys-018","subject":"phys","topic":"Лінзи","type":"number","question":"Фокусна відстань збиральної лінзи дорівнює 0,2 м. Знайдіть її оптичну силу в діоптріях.","options":[],"correct":"5","explanation":"D = 1/F = 1/0,2 = +5 дптр. Для збиральної лінзи оптична сила додатна.","mistake":"","source":"Авторська тренувальна вправа"},{"id":"phys-019","subject":"phys","topic":"Квантова фізика","type":"single","question":"Як зміниться енергія фотона, якщо його частота збільшиться вдвічі?","options":["збільшиться вдвічі","зменшиться вдвічі","збільшиться в чотири рази","не зміниться","зменшиться в чотири рази"],"correct":"збільшиться вдвічі","explanation":"Енергія фотона E = hν. Стала Планка h незмінна, тому енергія прямо пропорційна частоті.","mistake":"","source":"Авторська тренувальна вправа"},{"id":"phys-020","subject":"phys","topic":"Газові закони","type":"single","question":"Яке співвідношення виконується для незмінної маси ідеального газу під час ізотермічного процесу?","options":["pV = const","p/V = const","V/T = const","p/T = const","p + V = const"],"correct":"pV = const","explanation":"Під час ізотермічного процесу температура стала. Для незмінної маси ідеального газу виконується закон Бойля–Маріотта: pV = const.","mistake":"","source":"Авторська тренувальна вправа"},{"id":"phys-021","subject":"phys","topic":"Ідеальний газ","type":"single","question":"Абсолютна температура незмінної кількості ідеального газу в жорсткій закритій посудині збільшилася вдвічі. Як змінився тиск?","options":["збільшився вдвічі","зменшився вдвічі","не змінився","збільшився в чотири рази","зменшився в чотири рази"],"correct":"збільшився вдвічі","explanation":"Об’єм і кількість речовини сталі. З рівняння pV = νRT маємо p/T = const, тому тиск зростає вдвічі.","mistake":"Температуру в газових законах потрібно брати в кельвінах.","source":"Авторська тренувальна вправа"},{"id":"phys-022","subject":"phys","topic":"Ядерна фізика","type":"single","question":"Як змінюються масове число A та зарядове число Z ядра під час α-розпаду?","options":["A зменшується на 4, Z зменшується на 2","A зменшується на 2, Z зменшується на 4","A не змінюється, Z збільшується на 1","A збільшується на 4, Z збільшується на 2","A і Z не змінюються"],"correct":"A зменшується на 4, Z зменшується на 2","explanation":"Альфа-частинка — ядро гелію з A = 4 та Z = 2. Після її випромінювання ці числа в материнського ядра відповідно зменшуються.","mistake":"","source":"Авторська тренувальна вправа"},{"id":"phys-023","subject":"phys","topic":"Геометрична оптика","type":"single","question":"За яких умов можливе повне внутрішнє відбивання світла?","options":["Перехід з оптично густішого середовища в менш густе; кут падіння більший за граничний.","Перехід з менш густого середовища в густіше за будь-якого кута.","Будь-який перехід світла через межу середовищ.","Лише падіння світла перпендикулярно до межі.","Лише перехід світла з повітря у скло."],"correct":"Перехід з оптично густішого середовища в менш густе; кут падіння більший за граничний.","explanation":"Для повного внутрішнього відбивання n₁ > n₂ і кут падіння перевищує граничний. За граничного кута заломлений промінь іде вздовж межі.","mistake":"","source":"Авторська тренувальна вправа"},{"id":"phys-024","subject":"phys","topic":"Фізичні величини","type":"matching","question":"Поєднайте фізичну величину з її одиницею SI.","options":["джоуль","ват","кулон","герц","паскаль"],"correct":["джоуль","ват","кулон","герц"],"explanation":"Робота — джоуль; потужність — ват; заряд — кулон; частота — герц. Паскаль — одиниця тиску.","mistake":"","source":"Авторська тренувальна вправа","left":["робота","потужність","електричний заряд","частота"]},{"id":"phys-025","subject":"phys","topic":"Формули","type":"matching","question":"Поєднайте формулу з її змістом.","options":["закон Ома для ділянки кола","кінетична енергія","другий закон Ньютона","теплота під час нагрівання без фазового переходу","сила Архімеда"],"correct":["другий закон Ньютона","закон Ома для ділянки кола","теплота під час нагрівання без фазового переходу","кінетична енергія"],"explanation":"F = ma — другий закон Ньютона; I = U/R — закон Ома; Q = cmΔT — нагрівання; Eк = mv²/2 — кінетична енергія.","mistake":"","source":"Авторська тренувальна вправа","left":["F = ma","I = U/R","Q = cmΔT","Eк = mv²/2"]}],"meta":{"created":"2026-10-26","kind":"author_practice","scope":"Стартовий набір. Не охоплює всю програму підготовки до НМТ.","curriculum_url":"https://testportal.gov.ua/programy-nmt/","demo_url":"https://testportal.gov.ua/demonstratsijnyj-variant-nmt-2026/","format_basis":"Типи завдань і навчальне нарахування балів орієнтовані на матеріали НМТ-2026. Формат НМТ-2027 слід звіряти з офіційними публікаціями УЦОЯО."}}</script>
+<script>(() => {
+  'use strict';
+  const DATA = JSON.parse(document.getElementById('app-data').textContent);
+  const app = document.getElementById('app');
+  const Q = new Map(DATA.questions.map(q => [q.id, q]));
+  const SUBJECT = new Map(DATA.subjects.map(s => [s.id, s]));
+  const KEY = 'nmtQuizProgressV1';
+  const DRAFT_KEY = 'nmtQuizDraftV1';
+  const LETTERS = ['А', 'Б', 'В', 'Г', 'Д', 'Е', 'Ж'];
+  const MODES = {learn: 'Навчання', exam: 'Іспит', errors: 'Робота над помилками'};
+  const pointLabel = n => `${n} ${n===1?'навчальний бал':n<5?'навчальні бали':'навчальних балів'}`;
+  let storageOK = true;
+  let progress;
+  let draft;
+  let session = null;
+  let notice = '';
+  let view = 'home';
+
+  const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const subjectName = id => SUBJECT.get(id)?.name || 'Усі предмети';
+  const fresh = () => ({schema:1, exams:[], errors:{}, learned:{}});
+  const shuffle = xs => {
+    const a = [...xs];
+    for (let i=a.length-1; i>0; i--) {
+      const j=Math.floor(Math.random()*(i+1));
+      [a[i],a[j]]=[a[j],a[i]];
+    }
+    return a;
+  };
+  function numberValue(value) {
+    if (typeof value !== 'string' && typeof value !== 'number') return null;
+    const s=String(value).trim().replace(/\u2212/g,'-').replace(/\s/g,'').replace(',','.');
+    if (!s || !/^[+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:e[+-]?\d+)?$/i.test(s)) return null;
+    const n=Number(s);
+    return Number.isFinite(n) ? n : null;
+  }
+  function maxPoints(q) {
+    if (q.type==='number') return 2;
+    if (q.type==='matching') return q.left.length;
+    if (q.type==='multiple') return q.correct.length;
+    if (q.type==='order') return 3;
+    return 1;
+  }
+  function grade(q, answer) {
+    if (q.type==='number') {
+      const n=numberValue(answer), target=numberValue(q.correct);
+      return n!==null && target!==null && Math.abs(n-target)<=1e-9*Math.max(1,Math.abs(target)) ? 2 : 0;
+    }
+    if (q.type==='matching') return q.correct.reduce((s,x,i)=>s+(Array.isArray(answer)&&answer[i]===x?1:0),0);
+    if (q.type==='multiple') {
+      if (!Array.isArray(answer) || answer.length>q.selectCount || new Set(answer).size!==answer.length) return 0;
+      return answer.filter(x=>q.correct.includes(x)).length;
+    }
+    if (q.type==='order') {
+      if (!Array.isArray(answer) || new Set(answer.filter(Boolean)).size!==answer.filter(Boolean).length) return 0;
+      if(q.correct.every((x,i)=>answer[i]===x)) return 3;
+      return Number(answer[0]===q.correct[0])+Number(answer[q.correct.length-1]===q.correct[q.correct.length-1]);
+    }
+    return answer===q.correct ? 1 : 0;
+  }
+  function sanitizeAnswer(q, a) {
+    if (q.type==='number') return typeof a==='string' ? a.slice(0,64) : '';
+    if (q.type==='single') return q.options.includes(a) ? a : '';
+    if (!Array.isArray(a)) return [];
+    const cleaned=a.slice(0,q.type==='matching'?q.left.length:q.type==='order'?q.options.length:q.selectCount)
+      .map(x=>q.options.includes(x)?x:'');
+    return q.type==='multiple' ? [...new Set(cleaned.filter(Boolean))] : cleaned;
+  }
+  function cleanProgress(raw) {
+    const p=fresh();
+    if(!raw || typeof raw!=='object') return p;
+    if(Array.isArray(raw.exams)) p.exams=raw.exams.filter(e=>e&&typeof e==='object'&&typeof e.date==='string'&&
+      !Number.isNaN(Date.parse(e.date))&&Number.isFinite(e.score)&&Number.isFinite(e.max)&&e.max>0&&
+      e.score>=0&&e.score<=e.max&&(SUBJECT.has(e.scope)||e.scope==='mixed')).slice(-100).map(e=>({
+        date:e.date,scope:e.scope,score:e.score,max:e.max,count:Number(e.count)||0,
+        correct:Math.max(0,Number(e.correct)||0),percent:Math.round(e.score/e.max*100)
+      }));
+    for(const id of Q.keys()) {
+      if(raw.errors && Object.hasOwn(raw.errors,id)) p.errors[id]={date:String(raw.errors[id]?.date||'')};
+      if(raw.learned && Object.hasOwn(raw.learned,id)) p.learned[id]=raw.learned[id]===true;
+    }
+    return p;
+  }
+  function readProgress() {
+    try {return cleanProgress(JSON.parse(localStorage.getItem(KEY)||'null'));}
+    catch {storageOK=false;return fresh();}
+  }
+  function readDraft() {
+    try {
+      const d=JSON.parse(localStorage.getItem(DRAFT_KEY)||'null');
+      if(!d || !['learn','exam','errors'].includes(d.mode) || !Array.isArray(d.ids)) return null;
+      const ids=[...new Set(d.ids.filter(id=>Q.has(id)))];
+      if(!ids.length) return null;
+      const result={mode:d.mode,scope:SUBJECT.has(d.scope)?d.scope:'mixed',ids,
+        index:Math.min(Math.max(0,Number(d.index)||0),ids.length-1),answers:{},checked:{},choices:{},finished:false};
+      for(const id of ids) {
+        const q=Q.get(id);
+        result.answers[id]=sanitizeAnswer(q,d.answers?.[id]);
+        result.checked[id]=d.checked?.[id]===true;
+        const o=d.choices?.[id];
+        result.choices[id]=Array.isArray(o)&&o.length===q.options.length&&new Set(o).size===o.length&&o.every(x=>q.options.includes(x))?o:shuffle(q.options);
+      }
+      return result;
+    } catch {storageOK=false;return null;}
+  }
+  function save() {
+    try {localStorage.setItem(KEY,JSON.stringify(progress));}
+    catch {storageOK=false;}
+  }
+  function saveDraft() {
+    draft=session&&!session.finished?JSON.parse(JSON.stringify(session)):null;
+    try {
+      if(draft) localStorage.setItem(DRAFT_KEY,JSON.stringify(draft));
+      else localStorage.removeItem(DRAFT_KEY);
+    } catch {storageOK=false;}
+  }
+  function header(back=true) {
+    return `<header class="topbar"><div><p class="eyebrow">УКРАЇНСЬКА · ІСТОРІЯ · МАТЕМАТИКА · ФІЗИКА</p><h1 class="brand">${esc(DATA.title)}</h1></div>${back?'<button class="btn secondary" data-action="home">На головну</button>':''}</header>`;
+  }
+  function render(content, focus=true) {
+    app.innerHTML=header(view!=='home')+(!storageOK?'<p class="warning" role="status">Браузер зараз не зберігає дані. Результати цього заняття доступні до закриття сторінки. У розділі «Мій прогрес» можна завантажити копію.</p>':'')+
+      (notice?`<p class="notice" role="status">${esc(notice)}</p>`:'')+content;
+    notice='';
+    if(focus) {
+      const heading=app.querySelector('h2');
+      if(heading){heading.tabIndex=-1;heading.focus({preventScroll:true});}
+      window.scrollTo({top:0,behavior:'instant'});
+    }
+  }
+  function home() {
+    view='home';session=null;
+    const errorCount=Object.keys(progress.errors).length;
+    render(`<section class="card hero"><div class="hero-heading"><div><p class="eyebrow">КРОК ЗА КРОКОМ ДО ІСПИТУ</p><h2>Зрозумій. Спробуй. Запам’ятай.</h2><p>Обирай предмет і тренуйся у своєму темпі. Після кожної відповіді в навчанні є коротке пояснення.</p></div><div class="bank-number"><strong>${DATA.questions.length}</strong><span>вправ для старту</span></div></div><div class="subject-pills">${DATA.subjects.map(s=>`<span class="pill">${esc(s.name)} · ${DATA.questions.filter(q=>q.subject===s.id).length}</span>`).join('')}</div></section>
+      ${draft?`<section class="resume-strip"><div><strong>Є незавершене заняття</strong><div class="small">${MODES[draft.mode]} · ${subjectName(draft.scope)} · питання ${draft.index+1} з ${draft.ids.length}</div></div><button class="btn" data-action="resume">Продовжити</button></section>`:''}
+      <section class="grid">
+        <article class="card mode-card"><div><div class="mode-number">01</div><h3>Навчання</h3><p>Відповідай, перевіряй себе та читай пояснення відразу.</p></div><button class="btn" data-action="pick" data-mode="learn">Почати навчання</button></article>
+        <article class="card mode-card"><div><div class="mode-number">02</div><h3>Іспит за предметом</h3><p>10, 15 або всі питання. Відповіді та пояснення відкриються після завершення.</p></div><button class="btn" data-action="pick" data-mode="exam">Обрати предмет</button></article>
+        <article class="card mode-card"><div><div class="mode-number">03</div><h3>20 випадкових питань</h3><p>По 5 питань з кожного предмета в одному навчальному іспиті.</p></div><button class="btn" data-action="mixed">Почати змішаний іспит</button></article>
+        <article class="card mode-card"><div><div class="mode-number">04</div><h3>Робота над помилками</h3><p>Повторюй неправильні та пропущені в іспитах завдання. Правильна відповідь прибирає питання з цього списку.</p></div><button class="btn" data-action="errors">Відкрити помилки (${errorCount})</button></article>
+        <article class="card mode-card"><div><div class="mode-number">05</div><h3>Мій прогрес</h3><p>Історія іспитів, результати за предметами та копія прогресу для перенесення.</p></div><button class="btn secondary" data-action="progress">Переглянути прогрес</button></article>
+        <article class="card mode-card"><div><div class="mode-number">06</div><h3>Матеріали НМТ</h3><p>Офіційні програми, демонстраційні варіанти та пояснення навчальних балів.</p></div><button class="btn secondary" data-action="resources">Відкрити матеріали</button></article>
+      </section><p class="footer-note">Стартовий банк із 100 авторських вправ. Він охоплює частину тем програми; його можна розширювати. Таймерів немає.</p>`);
+  }
+  function pick(mode) {
+    view='pick';
+    const errors=Object.keys(progress.errors);
+    render(`<section class="card"><p class="eyebrow">${MODES[mode]}</p><h2>Обери предмет</h2><div class="topic-grid">${DATA.subjects.map((s,i)=>{
+      const count=DATA.questions.filter(q=>q.subject===s.id&&(mode!=='errors'||errors.includes(q.id))).length;
+      return `<button class="topic-card" data-action="subject" data-subject="${s.id}" data-mode="${mode}" ${count?'':'disabled'}><span class="mode-number">0${i+1}</span><strong>${esc(s.name)}</strong><span>${esc(s.description)}</span><span class="small">${count} ${mode==='errors'?'завдань для повторення':'вправ'}</span></button>`;
+    }).join('')}</div></section>`);
+  }
+  function chooseCount(scope) {
+    view='count';
+    const total=DATA.questions.filter(q=>q.subject===scope).length;
+    const counts=[...new Set([10,15,total].filter(x=>x<=total))];
+    render(`<section class="card"><p class="eyebrow">ІСПИТ ЗА ПРЕДМЕТОМ</p><h2>${esc(subjectName(scope))}</h2><p>Скільки питань пройдемо цього разу?</p><div class="count-grid">${counts.map((n,i)=>`<button class="count-card" data-action="start" data-scope="${scope}" data-count="${n}"><strong>${n===total?'Усі':n}</strong><span>${n===total?`${total} питань`:'питань'}</span></button>`).join('')}</div><p class="small">Порядок завдань і варіантів перемішується. До завершення іспиту показується лише твій вибір.</p></section>`);
+  }
+  function start(mode,scope,count=Infinity) {
+    if(draft && !confirm('Почати нове заняття? Воно замінить незавершене заняття. Збережені результати іспитів залишаться.')) return;
+    let items;
+    if(scope==='mixed') items=shuffle(DATA.subjects.flatMap(s=>shuffle(DATA.questions.filter(q=>q.subject===s.id)).slice(0,5)));
+    else items=DATA.questions.filter(q=>q.subject===scope&&(mode!=='errors'||Object.hasOwn(progress.errors,q.id)));
+    items=shuffle(items).slice(0,count);
+    if(!items.length){errors();return;}
+    session={mode,scope,ids:items.map(q=>q.id),index:0,answers:{},checked:{},choices:{},finished:false};
+    for(const q of items) session.choices[q.id]=shuffle(q.options);
+    saveDraft();quiz();
+  }
+  function completeAnswer(q,a) {
+    if(q.type==='number') return numberValue(a)!==null;
+    if(q.type==='multiple') return Array.isArray(a)&&a.length===q.selectCount;
+    if(q.type==='matching'||q.type==='order') {
+      const count=q.type==='matching'?q.left.length:q.options.length;
+      return Array.isArray(a)&&a.length===count&&a.every(Boolean)&&new Set(a).size===a.length;
+    }
+    return typeof a==='string'&&a.length>0;
+  }
+  function anyAnswer(q,a) {
+    if(Array.isArray(a)) return a.some(Boolean);
+    return typeof a==='string'&&a.trim().length>0;
+  }
+  function answerText(q,a) {
+    if(!anyAnswer(q,a)) return 'Відповіді немає';
+    if(q.type==='matching') return q.left.map((x,i)=>`${i+1}. ${x} → ${a?.[i]||'не обрано'}`).join('\n');
+    if(q.type==='order') return q.options.map((_,i)=>`${i+1}. ${a?.[i]||'не обрано'}`).join('\n');
+    return Array.isArray(a)?a.join('; '):String(a);
+  }
+  function answerUI(q,a,checked) {
+    const opts=session.choices[q.id];
+    const correct=grade(q,a)===maxPoints(q);
+    if(q.type==='number') return `<label class="input-label" for="number-answer">Введи число без одиниць вимірювання</label><input id="number-answer" class="manual-input ${checked?(correct?'correct':'wrong'):''}" data-number inputmode="decimal" type="text" autocomplete="off" maxlength="64" value="${esc(a||'')}" placeholder="Наприклад: 2,5 або −3" ${checked?'disabled':''}><p class="small">Десяткову частину можна відокремлювати комою або крапкою.</p>`;
+    if(q.type==='matching'||q.type==='order') {
+      const rows=q.type==='matching'?q.left:q.options.map((_,i)=>`${i+1}-ша позиція`);
+      return `<div class="matching-rows">${rows.map((left,i)=>{
+        const value=a?.[i]||'';
+        const cls=checked?(value===q.correct[i]?'correct':'wrong'):'';
+        return `<div class="matching-row ${cls}"><label for="pair-${i}"><strong>${i+1}.</strong> ${q.type==='matching'?esc(left):`Подія № ${i+1}`}</label><select id="pair-${i}" data-pair="${i}" ${checked?'disabled':''}><option value="">Обери відповідь</option>${opts.map((x,j)=>`<option value="${j}" ${value===x?'selected':''} ${a?.some((v,k)=>k!==i&&v===x)?'disabled':''}>${q.type==='matching'?`${LETTERS[j]}. `:''}${esc(x)}</option>`).join('')}</select></div>`;
+      }).join('')}</div>`;
+    }
+    return `<div class="answers">${opts.map((x,i)=>{
+      const selected=q.type==='multiple'?Array.isArray(a)&&a.includes(x):a===x;
+      const right=q.type==='multiple'?q.correct.includes(x):q.correct===x;
+      const cls=checked?(right?'correct':selected?'wrong':''):selected?'selected':'';
+      return `<button class="answer-btn ${cls}" data-action="answer" data-option="${i}" aria-pressed="${selected}" ${checked?'disabled':''}><span class="answer-letter">${LETTERS[i]}</span><span>${esc(x)}</span></button>`;
+    }).join('')}</div>`;
+  }
+  function quiz(focus=true) {
+    view='quiz';
+    const q=Q.get(session.ids[session.index]), a=session.answers[q.id];
+    const checked=session.mode!=='exam'&&session.checked[q.id];
+    const hint=q.type==='multiple'?`Обери ${q.selectCount} відповіді. Обрано: ${Array.isArray(a)?a.length:0}/${q.selectCount}.`:
+      q.type==='matching'?'Установи відповідності. Кожен варіант у цьому завданні використовуй щонайбільше один раз.':
+      q.type==='order'?'Обери подію для кожної позиції: від найдавнішої до найпізнішої.':q.type==='number'?'Обчисли та введи відповідь.':'Обери одну правильну відповідь.';
+    const result=checked?`<section class="explanation ${grade(q,a)===maxPoints(q)?'good':'bad'}" role="status"><h3>${grade(q,a)===maxPoints(q)?'Правильно!':'Розберімо відповідь'}</h3><p><strong>Навчальні бали: ${grade(q,a)} / ${maxPoints(q)}</strong></p>${grade(q,a)!==maxPoints(q)?`<p><strong>Правильна відповідь:</strong></p><p class="preserve-lines">${esc(answerText(q,q.correct))}</p>`:''}<h4>Пояснення</h4><p>${esc(q.explanation)}</p>${q.mistake?`<h4>На що звернути увагу</h4><p>${esc(q.mistake)}</p>`:''}</section>`:'';
+    render(`<section class="card"><div class="header-line"><div><p class="eyebrow">${MODES[session.mode]}</p><h2>${esc(subjectName(q.subject))}</h2></div><strong>Питання ${session.index+1} з ${session.ids.length}</strong></div><div class="progress-track" aria-label="Позиція в занятті"><div class="progress-bar" style="width:${(session.index+1)/session.ids.length*100}%"></div></div><div class="meta"><span class="pill">${esc(q.topic)}</span><span class="small">Максимум: ${pointLabel(maxPoints(q))}</span></div><h3 class="question-text">${esc(q.question)}</h3><p class="answer-hint">${hint}</p>${answerUI(q,a,checked)}${result}<div class="btn-row quiz-buttons"><button class="btn secondary" data-action="prev" ${session.index===0?'disabled':''}>Назад</button>${session.mode!=='exam'&&!checked?`<button class="btn" data-action="check" ${completeAnswer(q,a)?'':'disabled'}>Перевірити відповідь</button>`:''}${session.mode==='exam'||checked?`<button class="btn" data-action="next">${session.index===session.ids.length-1?(session.mode==='exam'?'Завершити іспит':'Завершити заняття'):'Далі'}</button>`:''}${session.mode!=='exam'&&!checked?'<button class="btn secondary" data-action="skip">Пропустити</button>':''}</div>${session.mode==='exam'?`<details class="question-nav"><summary>Навігація: відповіді є у ${session.ids.filter(id=>anyAnswer(Q.get(id),session.answers[id])).length} з ${session.ids.length} завдань</summary><div class="question-grid">${session.ids.map((id,i)=>`<button class="nav-dot ${i===session.index?'current':''} ${anyAnswer(Q.get(id),session.answers[id])?'filled':''}" data-action="jump" data-index="${i}" aria-label="Питання ${i+1}${anyAnswer(Q.get(id),session.answers[id])?', відповідь є':''}">${i+1}</button>`).join('')}</div></details>`:''}</section>`,focus);
+  }
+  function check() {
+    if(!session||session.finished||session.mode==='exam') return;
+    const q=Q.get(session.ids[session.index]),a=session.answers[q.id];
+    if(session.checked[q.id]||!completeAnswer(q,a)) return;
+    session.checked[q.id]=true;
+    if(session.mode==='learn') progress.learned[q.id]=true;
+    if(session.mode==='errors'&&grade(q,a)===maxPoints(q)) delete progress.errors[q.id];
+    save();saveDraft();quiz(false);
+  }
+  function advance() {
+    if(session.index<session.ids.length-1){session.index++;saveDraft();quiz();}
+    else finish();
+  }
+  function totals(ids,answers) {
+    return ids.reduce((r,id)=>{const q=Q.get(id),n=grade(q,answers[id]);r.score+=n;r.max+=maxPoints(q);r.correct+=n===maxPoints(q)?1:0;return r;},{score:0,max:0,correct:0});
+  }
+  function finish() {
+    if(session.finished) return;
+    if(session.mode==='exam') {
+      const missing=session.ids.filter(id=>!anyAnswer(Q.get(id),session.answers[id])).length;
+      if(missing&&!confirm(`Залишилося ${missing} завдань без відповіді. Завершити іспит?`)) return;
+      const t=totals(session.ids,session.answers);
+      for(const id of session.ids) {
+        const q=Q.get(id);
+        if(grade(q,session.answers[id])===maxPoints(q)) delete progress.errors[id];
+        else progress.errors[id]={date:new Date().toISOString()};
+      }
+      progress.exams.push({...t,scope:session.scope,count:session.ids.length,date:new Date().toISOString(),percent:Math.round(t.score/t.max*100)});
+      progress.exams=progress.exams.slice(-100);
+      save();
+    }
+    session.finished=true;saveDraft();results();
+  }
+  function results() {
+    view='results';
+    const t=totals(session.ids,session.answers),pct=Math.round(t.score/t.max*100);
+    const subjects=DATA.subjects.filter(s=>session.ids.some(id=>Q.get(id).subject===s.id));
+    render(`<section class="card"><p class="eyebrow">${session.mode==='exam'?'ІСПИТ ЗАВЕРШЕНО':'ЗАНЯТТЯ ЗАВЕРШЕНО'}</p><h2>${esc(subjectName(session.scope))}</h2><div class="result-big">${pct}%</div><p><strong>${t.score} із ${t.max} навчальних балів</strong> · Повністю правильно: ${t.correct} із ${session.ids.length} завдань.</p><p class="small">Це результат цього навчального набору. Він не є оцінкою НМТ за шкалою 100–200.</p>${subjects.length>1?`<div class="subject-results">${subjects.map(s=>{const ids=session.ids.filter(id=>Q.get(id).subject===s.id),st=totals(ids,session.answers);return `<div class="stat"><strong>${st.score}/${st.max}</strong><span>${esc(s.name)}</span></div>`;}).join('')}</div>`:''}<div class="btn-row"><button class="btn" data-action="errors">Попрацювати над помилками</button><button class="btn secondary" data-action="home">На головну</button></div></section><section class="review-list" aria-label="Розбір відповідей">${session.ids.map((id,i)=>{
+      const q=Q.get(id),a=session.answers[id],n=grade(q,a),right=n===maxPoints(q);
+      return `<article class="review-item"><div class="review-heading"><h3>${i+1}. ${esc(q.question)}</h3><span class="score-badge ${right?'good':'bad'}">${n}/${maxPoints(q)}</span></div><p><strong>Твоя відповідь:</strong></p><p class="preserve-lines">${esc(answerText(q,a))}</p>${!right?`<p><strong>Правильна відповідь:</strong></p><p class="preserve-lines">${esc(answerText(q,q.correct))}</p>`:''}<details ${!right?'open':''}><summary>Пояснення</summary><p>${esc(q.explanation)}</p>${q.mistake?`<p><strong>Зверни увагу:</strong> ${esc(q.mistake)}</p>`:''}</details></article>`;
+    }).join('')}</section>`);
+  }
+  function errors() {
+    if(!Object.keys(progress.errors).length){view='errors';render('<section class="card empty"><h2>Поки немає помилок</h2><p>Сюди потрапляють неправильні та пропущені завдання з іспитів. Після правильної відповіді під час повторення питання зникає зі списку.</p><button class="btn" data-action="pick" data-mode="exam">Пройти іспит</button></section>');return;}
+    pick('errors');
+  }
+  function dateLabel(s) {return new Date(s).toLocaleString('uk-UA',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});}
+  function showProgress() {
+    view='progress';
+    const exams=progress.exams,avg=exams.length?Math.round(exams.reduce((s,e)=>s+e.percent,0)/exams.length):0;
+    render(`<section class="card"><p class="eyebrow">МАЛЕНЬКІ КРОКИ, ВИДИМИЙ РЕЗУЛЬТАТ</p><h2>Мій прогрес</h2><div class="stats-grid"><div class="stat"><strong>${exams.length}</strong><span>іспитів</span></div><div class="stat"><strong>${exams.length?avg+'%':'—'}</strong><span>середній результат</span></div><div class="stat"><strong>${exams.length?Math.max(...exams.map(e=>e.percent))+'%':'—'}</strong><span>найкращий результат</span></div><div class="stat"><strong>${Object.keys(progress.errors).length}</strong><span>помилок для повторення</span></div></div><h3>За предметами</h3><div class="table-scroll"><table><thead><tr><th>Предмет</th><th>Іспитів</th><th>Останній результат</th><th>Помилок</th></tr></thead><tbody>${DATA.subjects.map(s=>{const es=exams.filter(e=>e.scope===s.id),last=es[es.length-1];return `<tr><td>${esc(s.name)}</td><td>${es.length}</td><td>${last?last.percent+'%':'Ще немає'}</td><td>${Object.keys(progress.errors).filter(id=>Q.get(id)?.subject===s.id).length}</td></tr>`;}).join('')}</tbody></table></div><p class="small">Змішані іспити показані в загальній історії. У навчанні опрацьовано ${Object.keys(progress.learned).length} із ${DATA.questions.length} вправ.</p><h3>Історія іспитів</h3>${exams.length?`<div class="table-scroll"><table><thead><tr><th>Дата</th><th>Предмет</th><th>Бали</th><th>Результат</th></tr></thead><tbody>${exams.slice().reverse().slice(0,20).map(e=>`<tr><td>${dateLabel(e.date)}</td><td>${esc(subjectName(e.scope))}</td><td>${e.score}/${e.max}</td><td>${e.percent}%</td></tr>`).join('')}</tbody></table></div><p class="small">Показано останні ${Math.min(exams.length,20)} іспитів. Зберігається до 100 результатів.</p>`:'<p>Після першого іспиту тут з’явиться результат.</p>'}<div class="backup-panel"><h3>Копія прогресу</h3><p>Прогрес зберігається в цьому браузері. Для перенесення на інший пристрій завантаж копію та віднови її там.</p><div class="btn-row"><button class="btn secondary" data-action="export">Завантажити копію</button><button class="btn secondary" data-action="import">Відновити з копії</button></div><input id="import-progress" type="file" accept="application/json,.json" hidden></div><button class="btn danger" data-action="reset">Очистити прогрес</button></section>`);
+  }
+  function resources() {
+    view='resources';
+    render(`<section class="card"><p class="eyebrow">ПРОГРАМА ТА ПРАКТИКА</p><h2>Матеріали НМТ</h2><p>У тренажері зараз <strong>100 авторських вправ: по 25 на предмет</strong>. Це початковий набір для практики; частина тем програми ще не представлена. Завдання мають власні формулювання та пояснення.</p><h3>Офіційні матеріали УЦОЯО</h3><div class="resource-links"><a href="${DATA.meta.curriculum_url}" target="_blank" rel="noopener noreferrer">Програми підготовки до НМТ ↗</a><a href="${DATA.meta.demo_url}" target="_blank" rel="noopener noreferrer">Демонстраційні варіанти НМТ-2026 ↗</a>${DATA.subjects.map(s=>`<a href="${s.url}" target="_blank" rel="noopener noreferrer">${esc(s.name)}: зміст та оцінювання 2026 ↗</a>`).join('')}</div><p class="small">Посилання на програми визначають навчальну тематику. Авторські питання не є офіційними завданнями УЦОЯО.</p><h3>Як рахуються навчальні бали</h3><ul class="plain-list"><li>Одна правильна відповідь: 1 бал.</li><li>Числова відповідь: 2 бали за правильне число.</li><li>Відповідності: по 1 балу за кожну правильну пару.</li><li>Три відповіді: по 1 балу за кожну правильну; обрати можна рівно три.</li><li>Хронологія: 3 бали за всю правильну послідовність; інакше по 1 балу за правильну першу та останню позиції.</li></ul><p>Відсоток результату — це набрані навчальні бали, поділені на максимально можливі для обраного набору. Переведення у 100–200 балів тут не виконується.</p><h3>Для вступу у 2027 році</h3><p>Структуру й офіційне оцінювання НМТ-2027 потрібно звіряти з публікаціями УЦОЯО. Ця версія використовує типи завдань, представлені в матеріалах 2026 року.</p></section>`);
+  }
+  function downloadCopy() {
+    const data={app:'nmt-memory-quiz',schema:1,bankVersion:DATA.version,exported:new Date().toISOString(),progress};
+    const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+    const url=URL.createObjectURL(blob),a=document.createElement('a');
+    a.href=url;a.download='nmt-progress.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
+  }
+  async function importCopy(file) {
+    if(!file)return;
+    if(file.size>2*1024*1024){notice='Файл завеликий. Обери копію прогресу цього тренажера.';showProgress();return;}
+    try {
+      const raw=JSON.parse(await file.text());
+      if(raw.app!=='nmt-memory-quiz'||raw.schema!==1||!raw.progress||!Array.isArray(raw.progress.exams)) throw Error('bad file');
+      const next=cleanProgress(raw.progress);
+      if(!confirm('Відновити прогрес із цього файлу? Поточний прогрес буде замінено.'))return;
+      progress=next;save();notice='Копію прогресу відновлено.';showProgress();
+    } catch {notice='Не вдалося прочитати копію. Потрібен файл nmt-progress.json, завантажений із цього тренажера.';showProgress();}
+  }
+  app.addEventListener('click',e=>{
+    const button=e.target.closest('button[data-action]');
+    if(!button||button.disabled)return;
+    const {action}=button.dataset;
+    if(action==='home'){home();return;}
+    if(action==='pick'){pick(button.dataset.mode);return;}
+    if(action==='subject') {
+      if(button.dataset.mode==='exam') chooseCount(button.dataset.subject);
+      else start(button.dataset.mode,button.dataset.subject);
+      return;
+    }
+    if(action==='start'){start('exam',button.dataset.scope,Number(button.dataset.count));return;}
+    if(action==='mixed'){start('exam','mixed');return;}
+    if(action==='resume'&&draft){session=JSON.parse(JSON.stringify(draft));quiz();return;}
+    if(action==='errors'){errors();return;}
+    if(action==='progress'){showProgress();return;}
+    if(action==='resources'){resources();return;}
+    if(action==='export'){downloadCopy();return;}
+    if(action==='import'){document.getElementById('import-progress').click();return;}
+    if(action==='reset'){
+      if(confirm('Видалити всю історію іспитів, помилки та незавершене заняття?')){
+        progress=fresh();session=null;save();saveDraft();notice='Прогрес очищено.';showProgress();
+      }
+      return;
+    }
+    if(!session||session.finished)return;
+    const q=Q.get(session.ids[session.index]);
+    if(action==='answer'&&!session.checked[q.id]) {
+      const value=session.choices[q.id][Number(button.dataset.option)];
+      if(!q.options.includes(value))return;
+      if(q.type==='multiple') {
+        let answer=session.answers[q.id]||[];
+        if(answer.includes(value))answer=answer.filter(x=>x!==value);
+        else if(answer.length<q.selectCount)answer=[...answer,value];
+        session.answers[q.id]=answer;saveDraft();quiz(false);
+      } else {session.answers[q.id]=value;saveDraft();if(session.mode!=='exam')check();else quiz(false);}
+      return;
+    }
+    if(action==='check'){check();return;}
+    if(action==='prev'&&session.index>0){session.index--;saveDraft();quiz();return;}
+    if(action==='next'||action==='skip'){advance();return;}
+    if(action==='jump') {const n=Number(button.dataset.index);if(Number.isInteger(n)&&n>=0&&n<session.ids.length){session.index=n;saveDraft();quiz();}}
+  });
+  app.addEventListener('input',e=>{
+    if(!e.target.matches('[data-number]')||!session||session.finished)return;
+    const q=Q.get(session.ids[session.index]);
+    if(session.checked[q.id])return;
+    session.answers[q.id]=e.target.value;saveDraft();
+    const checkBtn=app.querySelector('[data-action="check"]');
+    if(checkBtn)checkBtn.disabled=!completeAnswer(q,e.target.value);
+  });
+  app.addEventListener('change',e=>{
+    if(e.target.id==='import-progress'){importCopy(e.target.files[0]);return;}
+    if(!e.target.matches('[data-pair]')||!session||session.finished)return;
+    const q=Q.get(session.ids[session.index]);
+    if(session.checked[q.id])return;
+    const row=Number(e.target.dataset.pair),answer=[...(session.answers[q.id]||[])];
+    const n=q.type==='matching'?q.left.length:q.options.length;
+    while(answer.length<n)answer.push('');
+    const value=e.target.value===''?'':session.choices[q.id][Number(e.target.value)];
+    if(value&&answer.some((x,i)=>i!==row&&x===value))return;
+    answer[row]=value;session.answers[q.id]=answer;saveDraft();quiz(false);
+    document.getElementById(`pair-${row}`)?.focus();
+  });
+  app.addEventListener('keydown',e=>{
+    if(e.key==='Enter'&&e.target.matches('[data-number]')&&session?.mode!=='exam'){e.preventDefault();check();}
+  });
+  // Export pure functions for the local, dependency-free verification script.
+  progress=readProgress();
+  draft=readDraft();
+  if(globalThis.__NMT_TEST__) globalThis.__nmt={grade,maxPoints,numberValue,completeAnswer,sanitizeAnswer,cleanProgress,DATA};
+  home();
+})();
+</script>
+</body>
+</html>
